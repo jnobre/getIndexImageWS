@@ -13,12 +13,17 @@ public class ImageServiceImpl implements ImageService {
 	private ImageRepository repository;
 	
 	@Override
-	public List<Image> search(String imgSrc , String imgTitle) {
+	public List< Image > search( String imgSrc , String imgTitle ) {
 		return repository.findByImgSrcContainsOrImgTitleContains( imgSrc , imgTitle );
 	}
 
 	@Override
-	public List<Image> searchTerm( String searchTerm ) {
+	public List< Image > searchTerm( String searchTerm ) {
+		return repository.findByQueryAnnotation( searchTerm );
+	}
+	
+	@Override
+	public List< Image > searchByImgSrc( String searchTerm ) {
 		return repository.findByQueryAnnotation( searchTerm );
 	}
 	
