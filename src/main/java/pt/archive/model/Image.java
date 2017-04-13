@@ -31,54 +31,36 @@ public class Image {
 	
 	public Image( ) { } //Empty constructor is required
 	
-	/*
-	public Image(String timestamp, String srcBase64, String imgSrc, String originalURL, String digest, String collection,
-			String imgWidth, String mimeType, String imgHeight, String id, String version) {
-		super( );
-		this.timestamp 		= timestamp;
-		this.srcBase64 		= srcBase64;
-		this.imgSrc 		= imgSrc;
-		this.originalURL 	= originalURL;
-		this.digest 		= digest;
-		this.collection 	= collection;
-		this.imgWidth 		= imgWidth;
-		this.mimeType 		= mimeType;
-		this.imgHeight 		= imgHeight;
-		this.id 			= id;
-		this.version 		= version;
+	
+	public Image( Builder builder ) {
+		this.timestamp 		= builder.timestamp;
+		this.srcBase64 		= builder.srcBase64;
+		this.imgSrc 		= builder.imgSrc;
+		this.originalURL 	= builder.originalURL;
+		this.digest 		= builder.digest;
+		this.collection 	= builder.collection;
+		this.imgWidth 		= builder.imgWidth;
+		this.mimeType 		= builder.mimeType;
+		this.imgHeight 		= builder.imgHeight;
+		this.id 			= builder.id;
+		this.version 		= builder.version;
 	}
-*/
+
 
 	public String getTimestamp() {
 		return timestamp;
-	}
-
-	public void setTimestamp(String timestamp) {
-		this.timestamp = timestamp;
 	}
 
 	public String getSrcBase64() {
 		return srcBase64;
 	}
 
-	public void setSrcBase64(String srcBase64) {
-		this.srcBase64 = srcBase64;
-	}
-
 	public String getImgSrc() {
 		return imgSrc;
 	}
 
-	public void setImgSrc(String imgSrc) {
-		this.imgSrc = imgSrc;
-	}
-
 	public String getOriginalURL() {
 		return originalURL;
-	}
-
-	public void setOriginalURL(String originalURL) {
-		this.originalURL = originalURL;
 	}
 
 	public String getDigest() {
@@ -93,66 +75,63 @@ public class Image {
 		return collection;
 	}
 
-	public void setCollection(String collection) {
-		this.collection = collection;
-	}
-
 	public String getImgWidth() {
 		return imgWidth;
-	}
-
-	public void setImgWidth(String imgWidth) {
-		this.imgWidth = imgWidth;
 	}
 
 	public String getMimeType() {
 		return mimeType;
 	}
 
-	public void setMimeType(String mimeType) {
-		this.mimeType = mimeType;
-	}
-
 	public String getImgHeight() {
 		return imgHeight;
-	}
-
-	public void setImgHeight(String imgHeight) {
-		this.imgHeight = imgHeight;
 	}
 
 	public String getId() {
 		return id;
 	}
 
-	public void setId(String id) {
-		this.id = id;
-	}
-
 	public String getVersion() {
 		return version;
 	}
 
-	public void setVersion(String version) {
-		this.version = version;
-	}
 
 	@Override
-	public String toString() {
+	public String toString( ) {
 		return "Item [timestamp=" + timestamp + ", srcBase64=" + srcBase64 + ", imgSrc=" + imgSrc + ", originalURL="
 				+ originalURL + ", digest=" + digest + ", collection=" + collection + ", imgWidth=" + imgWidth
 				+ ", mimeType=" + mimeType + ", imgHeight=" + imgHeight + ", id=" + id + ", version=" + version + "]";
 	}
 	
-	public static Builder getBuilder(Long id, String timestamp, String srcBase64, String imgSrc, String originalURL, String digest, String collection,
-			String imgWidth, String mimeType, String imgHeight, String version) {
-		return new Builder( id, timestamp, srcBase64, imgSrc, originalURL, digest, collection,imgWidth, mimeType, imgHeight, version );
+	public ImageDTO _toConvertStudentDTO( ){
+		ImageDTO dto = new ImageDTO( );
+		dto.setCollection( collection );
+		dto.setDigest( digest );
+		dto.setId( id );
+		dto.setImgHeight( imgHeight );
+		dto.setImgSrc( imgSrc );
+		dto.setImgWidth( imgWidth );
+		dto.setMimeType( mimeType );
+		dto.setOriginalURL( originalURL );
+		dto.setSrcBase64( srcBase64 );
+		dto.setTimestamp( timestamp );
+		dto.setVersion( version );
+		return dto;
 	}
 	
 	public static class Builder{
-		private Image build;
-		
-		public Builder( Long id, String timestamp, String srcBase64, String imgSrc, String originalURL, String digest, String collection,
+		private String id;
+	    private String timestamp;
+	    private String srcBase64;
+	    private String imgSrc;
+	    private String originalURL;
+		private String digest;
+		private String collection;
+		private String imgWidth;
+		private String mimeType;
+		private String imgHeight;
+		private String version;
+	/*	public Builder( Long id, String timestamp, String srcBase64, String imgSrc, String originalURL, String digest, String collection,
 				String imgWidth, String mimeType, String imgHeight,  String version) {
 			build = new Image( );
 			build.id 			= id.toString( );
@@ -166,9 +145,61 @@ public class Image {
 			build.mimeType 		= mimeType;
 			build.imgHeight 	= imgHeight;
 			build.version 		= version;
+		}*/
+		private Builder() {}
+		Builder timestamp( String timestamp ) {
+			this.timestamp = timestamp;
+			return this;
 		}
 		
+		Builder srcBase64( String srcBase64 ) {
+			this.srcBase64 = srcBase64;
+			return this;
+		}
 		
+		Builder imgSrc( String imgSrc ) {
+			this.imgSrc = imgSrc;
+			return this;
+		}
 		
+		Builder originalURL( String originalURL ) {
+			this.originalURL = originalURL;
+			return this;
+		}
+		
+		Builder digest( String digest ) {
+			this.digest = digest;
+			return this;
+		}
+		
+		Builder collection( String collection ) {
+			this.collection = collection;
+			return this;
+		}
+		
+		Builder imgWidth( String imgWidth ) {
+			this.imgWidth = imgWidth;
+			return this;
+		}
+		
+		Builder mimeType( String mimeType ) {
+			this.mimeType = mimeType;
+			return this;
+		}
+		
+		Builder imgHeight( String imgHeight ) {
+			this.imgHeight = imgHeight;
+			return this;
+		}
+		
+		Builder version( String version ) {
+			this.version = version;
+			return this;
+		}
+		
+		public Image build( ) {
+			Image build = new Image( this );
+			return build;
+		}
 	}
 }

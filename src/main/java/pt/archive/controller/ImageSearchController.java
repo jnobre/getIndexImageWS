@@ -5,6 +5,7 @@ import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.data.solr.repository.config.EnableSolrRepositories;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
@@ -13,21 +14,26 @@ import org.springframework.web.bind.annotation.ResponseStatus;
 import org.springframework.web.bind.annotation.RestController;
 
 import pt.archive.model.Image;
+import pt.archive.model.ImageDTO;
 import pt.archive.model.ImageSearchResult;
-import pt.archive.repository.ImageRepository;
 import pt.archive.service.ImageService;
 import pt.archive.utils.SolrClient;
 
+import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 
 import javax.annotation.PostConstruct;
-import org.springframework.http.HttpStatus;
+import javax.annotation.Resource;
 
-@Configuration
+import org.springframework.http.HttpStatus;
+import org.springframework.stereotype.Component;
+
+//@Configuration
 @RestController
-@RequestMapping("/")
-public class ImageSearchController {
+@Configuration
+@EnableSolrRepositories(basePackages={"pt.archive.repository"}, multicoreSupport=true)
+final class ImageSearchController {
 	
 	private final Logger log = LoggerFactory.getLogger( this.getClass( ) ); //Define the logger object for this class
 	private List< String > terms;
@@ -36,12 +42,12 @@ public class ImageSearchController {
 	private List< String > blackListDomain;
 	private List< String > stopwords;
 	
-
+	@Resource
     private ImageService imageService;
-    @Autowired
+   /* @Autowired
     ImageSearchController( ImageService imageService ) {
     	this.imageService = imageService;
-	}
+	}*/
     
 	/**
 	 * Initialize init 
@@ -61,14 +67,16 @@ public class ImageSearchController {
 	 * @return 
 	 */
     @RequestMapping( value = "/" , method = RequestMethod.GET )
-    public List< Image > getImages( @RequestParam(value="query", defaultValue="") String query,
+    public List< ImageDTO > getImages( @RequestParam(value="query", defaultValue="") String query,
     									 @RequestParam(value="stamp", defaultValue="19960101000000-20151022163016") String stamtp,
     									 @RequestParam(value="start", defaultValue="0") String _startIndex,
     									 @RequestParam(value="safeImage", defaultValue="all") String _safeImage ) {
-    
-    	List< Image > images = imageService.searchByImgSrc( "http://images.cdn.impresa.pt/tvmais/2015-11-10-mb-socrates-legislativas2015-10.jpg?v=w75h75" ); 
-    	
-    	return images;
+	    List< ImageDTO > dtos = new ArrayList< >( );
+    	List< Image > images = imageService.findAll( ); //imageService.searchByImgSrc( "http://images.cdn.impresa.pt/tvmais/2015-11-10-mb-socrates-legislativas2015-10.jpg?v=w75h75" ); 
+    	for( Image image : images )  //TODO with Java 8 this is not necessary
+    		dtos.add( image._toConvertStudentDTO( ) );
+
+    	return dtos;
     }
     
    
