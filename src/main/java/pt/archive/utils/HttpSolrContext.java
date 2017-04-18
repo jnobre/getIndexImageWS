@@ -18,10 +18,10 @@ public class HttpSolrContext {
 	
 	static final String SOLR_HOST = "solr.server.host";
 	
-	@Resource private Environment environment;
+	/*@Resource private static Environment environment;
 
 	@Bean
-	public HttpSolrClient solrServer( ) {
+	public static HttpSolrClient solrServer( ) {
 		String solrHost = environment.getRequiredProperty( SOLR_HOST );
 		return new HttpSolrClient( solrHost );
 	}
@@ -29,6 +29,6 @@ public class HttpSolrContext {
 	@Bean
 	public SolrTemplate solrTemplate( ) throws Exception {
 	    return new SolrTemplate( solrServer( ) );
-	}
+	}*/
 	
 }

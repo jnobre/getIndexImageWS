@@ -10,14 +10,10 @@ import org.springframework.context.annotation.Configuration;
 import org.springframework.data.solr.repository.config.EnableSolrRepositories;
 
 @SpringBootApplication
-@Configuration
-@EnableSolrRepositories("pt.archive.repository")
-@EntityScan("pt.archive.model")
-@ComponentScan("pt.archive.service")
 public class Application extends SpringBootServletInitializer{
 	
-	/*public Application() {
-	    super();
+	/*public Application( ) {
+	    super( );
 	    setRegisterErrorPageFilter( false ); 
 	}*/
 
@@ -25,5 +21,6 @@ public class Application extends SpringBootServletInitializer{
     public static void main( String[ ] args ) {
         SpringApplication.run( Application.class , args );
     }
+    
 }
 

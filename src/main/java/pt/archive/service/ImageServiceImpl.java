@@ -2,8 +2,6 @@ package pt.archive.service;
 
 import java.util.List;
 import javax.annotation.Resource;
-
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import pt.archive.model.Image;
 import pt.archive.repository.ImageRepository;
@@ -11,11 +9,11 @@ import pt.archive.repository.ImageRepository;
 @Service
 public class ImageServiceImpl implements ImageService {
 
-	@Resource
+	//@Resource
 	private ImageRepository repository;
-	
+
     /*@Autowired
-    ImageServiceImpl(ImageRepository repository) {
+    ImageServiceImpl( ImageRepository repository ) {
         this.repository = repository;
     }*/
     
@@ -38,7 +36,5 @@ public class ImageServiceImpl implements ImageService {
 	public List< Image > findAll( ) {
 		return repository.findAll( );
 	}
-	
-	
 	
 }

@@ -13,7 +13,6 @@ import pt.archive.model.Image;
  * @author jnobre
  *
  */
-@Repository
 public interface ImageRepository extends SolrCrudRepository< Image , String > {
 	
 	/**
