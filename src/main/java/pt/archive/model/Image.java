@@ -14,7 +14,9 @@ public class Image {
     private String srcBase64;
     @Field("imgSrc")
     private String imgSrc;
-    @Field("originalURL")
+    @Field("imgTitle")
+    private String imgTitle;
+	@Field("originalURL")
     private String originalURL;
 	@Field( "digest" )
 	private String digest;
@@ -95,6 +97,14 @@ public class Image {
 		return version;
 	}
 
+    public String getImgTitle() {
+		return imgTitle;
+	}
+
+
+	public void setImgTitle(String imgTitle) {
+		this.imgTitle = imgTitle;
+	}
 
 	@Override
 	public String toString( ) {
@@ -131,6 +141,7 @@ public class Image {
 		private String mimeType;
 		private String imgHeight;
 		private String version;
+		private String imgTitle;
 	/*	public Builder( Long id, String timestamp, String srcBase64, String imgSrc, String originalURL, String digest, String collection,
 				String imgWidth, String mimeType, String imgHeight,  String version) {
 			build = new Image( );
@@ -159,6 +170,11 @@ public class Image {
 		
 		Builder imgSrc( String imgSrc ) {
 			this.imgSrc = imgSrc;
+			return this;
+		}
+		
+		Builder imgTitle( String imgTitle ) {
+			this.imgTitle = imgTitle;
 			return this;
 		}
 		

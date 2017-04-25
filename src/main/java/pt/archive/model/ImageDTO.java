@@ -12,6 +12,7 @@ public class ImageDTO {
 	private String mimeType;
 	private String imgHeight;
 	private String version;
+	private String imgTitle;
 	
 	public ImageDTO( ) { }
 	
@@ -81,11 +82,18 @@ public class ImageDTO {
 	public void setVersion(String version) {
 		this.version = version;
 	}
+	public String getImgTitle() {
+		return imgTitle;
+	}
+	public void setImgTitle(String imgTitle) {
+		this.imgTitle = imgTitle;
+	}
 
+	
 	@Override
 	public String toString() {
 		return "ImageDTO [id=" + id + ", timestamp=" + timestamp + ", srcBase64=" + srcBase64 + ", imgSrc=" + imgSrc
-				+ ", originalURL=" + originalURL + ", digest=" + digest + ", collection=" + collection + ", imgWidth="
+				+ ", imgTitle=" + imgTitle + ", originalURL=" + originalURL + ", digest=" + digest + ", collection=" + collection + ", imgWidth="
 				+ imgWidth + ", mimeType=" + mimeType + ", imgHeight=" + imgHeight + ", version=" + version + "]";
 	}
 	

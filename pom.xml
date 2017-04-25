@@ -19,7 +19,7 @@
     <parent>
         <groupId>org.springframework.boot</groupId>
         <artifactId>spring-boot-starter-parent</artifactId>
-        <version>1.4.2.RELEASE</version>
+        <version>1.5.1.RELEASE</version>
     </parent>
     
     <dependencies>
@@ -83,12 +83,7 @@
 		    <version>1.9.5</version>
 		    <scope>test</scope>
 		</dependency>
-		<dependency>
-		    <groupId>org.springframework</groupId>
-		    <artifactId>spring-test</artifactId>
-		    <version>3.2.3.RELEASE</version>
-		    <scope>test</scope>
-		</dependency>
+
 		<dependency>
 		  <groupId>org.imgscalr</groupId>
 		  <artifactId>imgscalr-lib</artifactId>
@@ -111,18 +106,6 @@
 		    <artifactId>solr-solrj</artifactId>
 		    <version>5.1.0</version>
 		</dependency>
-		<!-- Required by embedded solr server -->
-		<dependency>
-		    <groupId>org.apache.solr</groupId>
-		    <artifactId>solr-core</artifactId>
-		    <version>4.1.0</version>
-		    <exclusions>
-		        <exclusion>
-		            <artifactId>slf4j-jdk14</artifactId>
-		            <groupId>org.slf4j</groupId>
-		        </exclusion>
-		    </exclusions>
-		</dependency>
 		<!-- https://mvnrepository.com/artifact/org.springframework.data/spring-data-solr -->
 		<dependency>
 		    <groupId>org.springframework.data</groupId>
@@ -143,10 +126,6 @@
     </build>
 
     <repositories>
-        <repository>
-            <id>spring-releases</id>
-            <url>https://repo.spring.io/libs-release</url>
-        </repository>
         <repository>
 	        <id>spring-milestone</id>
 	        <name>Spring Milestone Maven Repository</name>
