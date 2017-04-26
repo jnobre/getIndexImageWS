@@ -22,12 +22,13 @@ public class AppConfig {
 	@Bean
 	public HttpSolrClient solrClient( ) {
 		String solrHost = environment.getRequiredProperty( SOLR_HOST );
-		return new HttpSolrClient( solrHost );
+		return new pt.archive.utils.HttpSolrClient( solrHost );
 	}
 	
 	@Bean
 	public SolrTemplate solrTemplate( ) throws Exception {
 	    return new SolrTemplate( solrClient( ) );
 	}
+
 	
 }
