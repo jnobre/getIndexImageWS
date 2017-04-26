@@ -29,7 +29,6 @@ public interface ImageRepository extends SolrCrudRepository< Image , String > {
 	@Query( "imgSrc:*?0* imgTitle:*?0*" )
 	public List< Image > findByQueryAnnotation( String searchTerm );
 	
-	
 	/**
 	 * Find images contains imgSrc and ImgTitle
 	 * @param imgSrc

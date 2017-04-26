@@ -4,7 +4,7 @@ import java.io.Serializable;
 
 public class Constants {
 	
-	public static final String solrURl			= "http://p27.arquivo.pt:8983/solr/IA";
+	//public static final String solrURl			= "http://p27.arquivo.pt:8983/solr/IA";
 	public static final String andOP 		 	= "&";
 	public static final String inOP  		 	= "+";
 	public static final String equalOP 		 	= "=";

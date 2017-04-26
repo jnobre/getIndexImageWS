@@ -2,7 +2,9 @@ package pt.archive.model;
 
 import org.apache.solr.client.solrj.beans.Field;
 import org.springframework.data.annotation.Id;
+import org.springframework.data.solr.core.mapping.SolrDocument;
 
+@SolrDocument(solrCoreName="IA")
 public class Image {
 	
 	@Id

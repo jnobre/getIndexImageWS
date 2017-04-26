@@ -57,7 +57,8 @@ public class ImageSearchController {
     									 @RequestParam(value="stamp", defaultValue="19960101000000-20151022163016") String stamtp,
     									 @RequestParam(value="start", defaultValue="0") String _startIndex,
     									 @RequestParam(value="safeImage", defaultValue="all") String _safeImage ) {
-	    List< Image > images = imageService.searchByImgSrc( "http://images.cdn.impresa.pt/tvmais/2015-11-10-mb-socrates-legislativas2015-10.jpg?v=w75h75" ); 
+	    //List< Image > images = imageService.searchByImgSrc( "http://images.cdn.impresa.pt/tvmais/2015-11-10-mb-socrates-legislativas2015-10.jpg?v=w75h75" ); 
+    	List< Image > images = imageService.findAll( );
     	return createDTO( images );
     }
 

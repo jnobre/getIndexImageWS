@@ -44,7 +44,7 @@ public class SolrClient {
 	public String execute(  ) {
 		log.info(  "Starting off " + this.getClass( ).toString( ) );
 		//SolrDao<Item> solrDao = new SolrDao<Item> ( Constants.solrURl );
-		HttpSolrClient solr = new HttpSolrClient( Constants.solrURl );
+		/*HttpSolrClient solr = new HttpSolrClient( Constants.solrURl );
 		QueryResponse  response = null;
 
 		try {
@@ -53,9 +53,9 @@ public class SolrClient {
 		} catch (SolrServerException | IOException e) {
 			log.error( "Error [SolrClient][execute] " , e );
 		}
-		return response.toString( );
+		return response.toString( );*/
 	    //log.info( "" +  );
-		
+		return "";
 	}
 	 
 
