@@ -13,7 +13,7 @@ import pt.archive.model.Image;
  * @author jnobre
  *
  */
-public interface ImageRepository extends SolrCrudRepository< Image , String > {
+public interface ImageRepository { //extends SolrCrudRepository< Image , String > {
 	
 	/**
 	 * Find all images entries from solr.
@@ -26,7 +26,7 @@ public interface ImageRepository extends SolrCrudRepository< Image , String > {
 	 * @param searchTerm
 	 * @return
 	 */
-	@Query( "imgSrc:*?0* imgTitle:*?0*" )
+	//@Query( "imgSrc:*?0* imgTitle:*?0*" )
 	public List< Image > findByQueryAnnotation( String searchTerm );
 	
 	/**

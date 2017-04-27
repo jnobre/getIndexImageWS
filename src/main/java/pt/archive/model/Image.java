@@ -1,36 +1,40 @@
 package pt.archive.model;
 
+import java.io.Serializable;
+
 import org.apache.solr.client.solrj.beans.Field;
 import org.springframework.data.annotation.Id;
 import org.springframework.data.solr.core.mapping.SolrDocument;
 
+import pt.archive.dto.ImageDTO;
+
 @SolrDocument(solrCoreName="IA")
-public class Image {
+public class Image implements Serializable , IImage {
 	
 	@Id
-	@Field
+	@Field( ID_FIELD )
 	private String id;
-	@Field("timestamp")
+	@Field( TIMESTAMP_FIELD )
     private String timestamp;
-    @Field("srcBase64")
+    @Field( SRCBASE64_FIELD )
     private String srcBase64;
-    @Field("imgSrc")
+    @Field( IMGSRC_FIELD )
     private String imgSrc;
-    @Field("imgTitle")
+    @Field( IMGTITLE_FIELD )
     private String imgTitle;
-	@Field("originalURL")
+	@Field( ORIGINALURL_FIELD )
     private String originalURL;
-	@Field( "digest" )
+	@Field( DIGEST_FIELD )
 	private String digest;
-	@Field( "collection" )
+	@Field( COLLECTION_FIELD )
 	private String collection;
-	@Field( "imgWidth" )
+	@Field( IMGWIDTH_FIELD )
 	private String imgWidth;
-	@Field( "mimeType" )
+	@Field( MIMETYPE_FIELD )
 	private String mimeType;
-	@Field( "imgHeight" )
+	@Field( IMGHEIGHT_FIELD )
 	private String imgHeight;
-	@Field( "_version_" )
+	@Field( VERSION_FIELD )
 	private String version;
 	
 	public Image( ) { } //Empty constructor is required
