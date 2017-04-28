@@ -15,5 +15,5 @@ public interface IImage {
 	String MIMETYPE_FIELD 		= "mimeType";
 	String IMGHEIGHT_FIELD 		= "imgHeight";
 	String VERSION_FIELD 		= "_version_";
-	
+	String IMGALT_FIELD			= "imgAlt";
 }

@@ -1,46 +1,51 @@
 package pt.archive.model;
 
 import java.io.Serializable;
+import java.util.List;
 
 import org.apache.solr.client.solrj.beans.Field;
 import org.springframework.data.annotation.Id;
-import org.springframework.data.solr.core.mapping.SolrDocument;
 
 import pt.archive.dto.ImageDTO;
 
-@SolrDocument(solrCoreName="IA")
 public class Image implements Serializable , IImage {
 	
+	/**
+	 * 
+	 */
+	private static final long serialVersionUID = 1L;
 	@Id
 	@Field( ID_FIELD )
 	private String id;
 	@Field( TIMESTAMP_FIELD )
-    private String timestamp;
+    private List< Long > timestamp;
     @Field( SRCBASE64_FIELD )
-    private String srcBase64;
+    private byte[] srcBase64;
     @Field( IMGSRC_FIELD )
-    private String imgSrc;
+    private List< String > imgSrc;
     @Field( IMGTITLE_FIELD )
     private String imgTitle;
 	@Field( ORIGINALURL_FIELD )
-    private String originalURL;
+    private List< String > originalURL;
 	@Field( DIGEST_FIELD )
 	private String digest;
 	@Field( COLLECTION_FIELD )
-	private String collection;
+	private List< String > collection;
 	@Field( IMGWIDTH_FIELD )
-	private String imgWidth;
+	private List< Double > imgWidth;
 	@Field( MIMETYPE_FIELD )
-	private String mimeType;
+	private List< String > mimeType;
 	@Field( IMGHEIGHT_FIELD )
-	private String imgHeight;
+	private List< Double > imgHeight;
 	@Field( VERSION_FIELD )
-	private String version;
+	private long version;
+	@Field( IMGALT_FIELD )
+	private List< String > imgAlt;
 	
 	public Image( ) { } //Empty constructor is required
 	
 	
-	public Image( Builder builder ) {
+	/*public Image( Builder builder ) {
 		this.timestamp 		= builder.timestamp;
 		this.srcBase64 		= builder.srcBase64;
 		this.imgSrc 		= builder.imgSrc;
@@ -52,22 +57,38 @@ public class Image implements Serializable , IImage {
 		this.imgHeight 		= builder.imgHeight;
 		this.id 			= builder.id;
 		this.version 		= builder.version;
+	}*/
+	
+	public Image( String id, List< Long > timestamp, byte[] srcBase64, 
+			List< String > imgSrc, List< String > originalURL, String digest, List< String > collection,
+			List< Double > imgWidth, List< String > mimeType, List< Double > imgHeight,  long version) {
+		this.id 			= id;
+		this.timestamp 		= timestamp;
+		this.srcBase64 		= srcBase64;
+		this.imgSrc 		= imgSrc;
+		this.originalURL 	= originalURL;
+		this.digest 		= digest;
+		this.collection 	= collection;
+		this.imgWidth 		= imgWidth;
+		this.mimeType 		= mimeType;
+		this.imgHeight 		= imgHeight;
+		this.version 		= version;
 	}
 
 
-	public String getTimestamp() {
+	public List< Long > getTimestamp() {
 		return timestamp;
 	}
 
-	public String getSrcBase64() {
+	public byte[] getSrcBase64() {
 		return srcBase64;
 	}
 
-	public String getImgSrc() {
+	public List< String > getImgSrc() {
 		return imgSrc;
 	}
-
-	public String getOriginalURL() {
+	
+	public List< String > getOriginalURL() {
 		return originalURL;
 	}
 
@@ -79,19 +100,19 @@ public class Image implements Serializable , IImage {
 		this.digest = digest;
 	}
 
-	public String getCollection() {
+	public List< String > getCollection() {
 		return collection;
 	}
 
-	public String getImgWidth() {
+	public List< Double > getImgWidth() {
 		return imgWidth;
 	}
 
-	public String getMimeType() {
+	public List< String > getMimeType() {
 		return mimeType;
 	}
 
-	public String getImgHeight() {
+	public List< Double > getImgHeight() {
 		return imgHeight;
 	}
 
@@ -99,7 +120,7 @@ public class Image implements Serializable , IImage {
 		return id;
 	}
 
-	public String getVersion() {
+	public long getVersion() {
 		return version;
 	}
 
@@ -111,6 +132,66 @@ public class Image implements Serializable , IImage {
 	public void setImgTitle(String imgTitle) {
 		this.imgTitle = imgTitle;
 	}
+	
+	public List<String> getImgAlt() {
+		return imgAlt;
+	}
+
+
+	public void setImgAlt(List<String> imgAlt) {
+		this.imgAlt = imgAlt;
+	}
+
+
+	public void setId(String id) {
+		this.id = id;
+	}
+
+
+	public void setTimestamp(List< Long > timestamp) {
+		this.timestamp = timestamp;
+	}
+
+
+	public void setSrcBase64(byte[] srcBase64) {
+		this.srcBase64 = srcBase64;
+	}
+
+
+	public void setImgSrc(List<String> imgSrc) {
+		this.imgSrc = imgSrc;
+	}
+
+
+	public void setOriginalURL(List<String> originalURL) {
+		this.originalURL = originalURL;
+	}
+
+
+	public void setCollection(List<String> collection) {
+		this.collection = collection;
+	}
+
+
+	public void setImgWidth(List< Double > imgWidth) {
+		this.imgWidth = imgWidth;
+	}
+
+
+	public void setMimeType(List<String> mimeType) {
+		this.mimeType = mimeType;
+	}
+
+
+	public void setImgHeight(List< Double > imgHeight) {
+		this.imgHeight = imgHeight;
+	}
+
+
+	public void setVersion(long version) {
+		this.version = version;
+	}
+
 
 	@Override
 	public String toString( ) {
@@ -121,33 +202,41 @@ public class Image implements Serializable , IImage {
 	
 	public ImageDTO _toConvertStudentDTO( ){
 		ImageDTO dto = new ImageDTO( );
-		dto.setCollection( collection );
+		if( collection != null )
+			dto.setCollection( collection.get( 0 ) );
 		dto.setDigest( digest );
 		dto.setId( id );
-		dto.setImgHeight( imgHeight );
-		dto.setImgSrc( imgSrc );
-		dto.setImgWidth( imgWidth );
-		dto.setMimeType( mimeType );
-		dto.setOriginalURL( originalURL );
+		if( imgHeight != null )
+			dto.setImgHeight( imgHeight.get( 0 ) );
+		if( imgSrc != null )
+			dto.setImgSrc( imgSrc.get( 0 ) );
+		if( imgWidth != null )
+			dto.setImgWidth( imgWidth.get( 0 ) );
+		if( mimeType != null )
+			dto.setMimeType( mimeType.get( 0 ) );
+		if( originalURL != null )
+			dto.setOriginalURL( originalURL.get( 0 ) );
 		dto.setSrcBase64( srcBase64 );
-		dto.setTimestamp( timestamp );
+		if( timestamp != null )
+			dto.setTimestamp( timestamp.get( 0 ) );
 		dto.setVersion( version );
 		return dto;
 	}
 	
 	public static class Builder{
 		private String id;
-	    private String timestamp;
-	    private String srcBase64;
-	    private String imgSrc;
-	    private String originalURL;
+	    private List< String > timestamp;
+	    private byte[] srcBase64;
+	    private List< String > imgSrc;
+	    private List< String > originalURL;
 		private String digest;
-		private String collection;
-		private String imgWidth;
-		private String mimeType;
-		private String imgHeight;
-		private String version;
+		private List< String > collection;
+		private List< String > imgWidth;
+		private List< String > mimeType;
+		private List< String > imgHeight;
+		private long version;
 		private String imgTitle;
+		private List< String > imgAlt;
 	/*	public Builder( Long id, String timestamp, String srcBase64, String imgSrc, String originalURL, String digest, String collection,
 				String imgWidth, String mimeType, String imgHeight,  String version) {
 			build = new Image( );
@@ -164,17 +253,17 @@ public class Image implements Serializable , IImage {
 			build.version 		= version;
 		}*/
 		private Builder() {}
-		Builder timestamp( String timestamp ) {
+		Builder timestamp( List< String > timestamp ) {
 			this.timestamp = timestamp;
 			return this;
 		}
 		
-		Builder srcBase64( String srcBase64 ) {
+		Builder srcBase64( byte[ ] srcBase64 ) {
 			this.srcBase64 = srcBase64;
 			return this;
 		}
 		
-		Builder imgSrc( String imgSrc ) {
+		Builder imgSrc( List< String > imgSrc ) {
 			this.imgSrc = imgSrc;
 			return this;
 		}
@@ -184,7 +273,7 @@ public class Image implements Serializable , IImage {
 			return this;
 		}
 		
-		Builder originalURL( String originalURL ) {
+		Builder originalURL( List< String > originalURL ) {
 			this.originalURL = originalURL;
 			return this;
 		}
@@ -194,34 +283,39 @@ public class Image implements Serializable , IImage {
 			return this;
 		}
 		
-		Builder collection( String collection ) {
+		Builder collection( List< String > collection ) {
 			this.collection = collection;
 			return this;
 		}
 		
-		Builder imgWidth( String imgWidth ) {
+		Builder imgWidth( List< String > imgWidth ) {
 			this.imgWidth = imgWidth;
 			return this;
 		}
 		
-		Builder mimeType( String mimeType ) {
+		Builder mimeType( List< String > mimeType ) {
 			this.mimeType = mimeType;
 			return this;
 		}
 		
-		Builder imgHeight( String imgHeight ) {
+		Builder imgAlt( List< String > imgAlt ) {
+			this.imgAlt = imgAlt;
+			return this;
+		}
+		
+		Builder imgHeight( List< String > imgHeight ) {
 			this.imgHeight = imgHeight;
 			return this;
 		}
 		
-		Builder version( String version ) {
+		Builder version( long version ) {
 			this.version = version;
 			return this;
 		}
 		
-		public Image build( ) {
+		/*public Image build( ) {
 			Image build = new Image( this );
 			return build;
-		}
+		}*/
 	}
 }

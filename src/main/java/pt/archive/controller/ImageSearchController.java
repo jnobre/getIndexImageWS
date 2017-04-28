@@ -1,5 +1,6 @@
 package pt.archive.controller;
 
+import org.apache.solr.client.solrj.response.QueryResponse;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -14,8 +15,10 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.ResponseStatus;
 import org.springframework.web.bind.annotation.RestController;
 
+import pt.archive.dao.SolrDao;
 import pt.archive.dto.ImageDTO;
 import pt.archive.model.Image;
+import pt.archive.model.ResultImages;
 import pt.archive.service.ImageService;
 
 import java.util.ArrayList;
@@ -29,17 +32,20 @@ import org.springframework.http.HttpStatus;
 public class ImageSearchController {
 	
 	private final Logger log = LoggerFactory.getLogger( this.getClass( ) ); //Define the logger object for this class
-	private final ImageService imageService;
 	HttpSolrClientFactory solrClientFactory = null;
 	private String[ ] solrCollections;
 	
 	@Value( "${solr.collections}" )
 	private String solrCollectionsProp;
 	
-	@Autowired // no necessary in spring 4.3+
+	@Value( "${solr.server.host}" )
+	private String solrURL;
+	
+	//private final ImageService imageService;
+/*	@Autowired // no necessary in spring 4.3+
 	public ImageSearchController(ImageService imageService) {
 	    this.imageService = imageService;
-	}
+	}*/
 	
 	/**
 	 * Initialize init 
@@ -50,7 +56,6 @@ public class ImageSearchController {
 	  log.info("Init method after properties are set : blacklistUrlFile & blacklistDomainFile");
 	  solrCollections = solrCollectionsProp.split( "," );
 	  printProperties( );
-	  
 	}
 	
 	
@@ -61,13 +66,21 @@ public class ImageSearchController {
 	 * @return 
 	 */
     @RequestMapping( value = "/" , method = RequestMethod.GET )
-    public List< ImageDTO > getImages( @RequestParam(value="query", defaultValue="") String query,
+    public ResultImages getImages( @RequestParam(value="query", defaultValue="") String query,
     									 @RequestParam(value="stamp", defaultValue="19960101000000-20151022163016") String stamtp,
     									 @RequestParam(value="start", defaultValue="0") String _startIndex,
     									 @RequestParam(value="safeImage", defaultValue="all") String _safeImage ) {
-	    List< Image > images = imageService.searchTerm( "socrates" ); 
-    	//List< Image > images = imageService.findAll( );
-    	return createDTO( images );
+	    //List< Image > images = imageService.searchTerm( "socrates" );
+	    //List< Image > images = imageService.findAll( );
+    	SolrDao< Image > solrDao = new SolrDao< Image > ( solrURL );
+    	List< Image > images = readItems( solrDao );
+    	return new ResultImages(  createDTO( images ) );
+    }
+    
+    private List< Image > readItems( SolrDao< Image > solrDao ) {
+        QueryResponse rsp = solrDao.readAll( );
+        List< Image > beans = rsp.getBeans( Image.class );
+        return beans;
     }
 
     private List< ImageDTO > createDTO( List< Image > input ) {
