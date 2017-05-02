@@ -22,10 +22,13 @@ import pt.archive.model.ResultImages;
 import pt.archive.service.ImageService;
 import pt.archive.utils.Constants;
 
+import java.io.BufferedReader;
 import java.io.File;
+import java.io.FileReader;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Collections;
+import java.util.Iterator;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Scanner;
@@ -54,6 +57,9 @@ public class ImageSearchController {
 	@Value( "${solr.server.host}" )
 	private String solrURL;
 	
+	@Value( "${solr.num.rows}" )
+	private int rowsSolr;
+	
 	@Value( "${stopWords.file}" )
 	private String stopWordsFileLocation;
 	
@@ -69,7 +75,7 @@ public class ImageSearchController {
 	 */
 	@PostConstruct
 	public void initIt( ) throws Exception {
-	  log.info("Init method after properties are set : blacklistUrlFile & blacklistDomainFile");
+	  log.info("Init method after properties are set : stopwords");
 	  solrCollections = solrCollectionsProp.split( "," );
 	  loadBlackListFiles( );
 	  loadStopWords( );
@@ -94,13 +100,14 @@ public class ImageSearchController {
     	if( query == null || query.trim( ).equals( "" ) ) 
     		return null;
     	getTerms( query );
-    	SolrDao< Image > solrDao = new SolrDao< Image > ( solrURL );
-    	List< Image > images = readItems( solrDao );
+    	String resultQuery = prepareTerms( query );
+    	SolrDao< Image > solrDao = new SolrDao< Image > ( solrURL , rowsSolr );
+    	List< Image > images = readItems( solrDao , resultQuery );
     	return new ResultImages(  createDTO( images ) );
     }
     
-    private List< Image > readItems( SolrDao< Image > solrDao ) {
-        QueryResponse rsp = solrDao.readAll( );
+    private List< Image > readItems( SolrDao< Image > solrDao , String query ) {
+        QueryResponse rsp = solrDao.findbyImgSrcAndImgAltAndTitle( query );
         List< Image > beans = rsp.getBeans( Image.class );
         return beans;
     }
@@ -118,6 +125,55 @@ public class ImageSearchController {
     	for( String collection : solrCollections )
     		log.info( "  " + collection );
     	log.info( "******************************" );
+    	log.info( "******* StopWords Urls *******" );
+    	for( String word : stopwords ) 
+    		log.info( "  " + word );
+    	log.info("***************************");
+    }
+    
+    /**
+     * Prepare terms of the ranking
+     * @param query
+     * @return
+     */
+    private String prepareTerms( String query ) {
+    	removeStopWords( );
+    	return removeCharactersAdvancedSearch( query );
+    }
+    
+    /**
+     * Remove stop words of the terms
+     */
+    private void removeStopWords( ) {
+    	for( Iterator< String > iterator = terms.iterator( ) ; iterator.hasNext( ); ) {
+    		String term = iterator.next( );
+    		for( String stopWord : stopwords ) {
+    			if( term.toLowerCase( ).equals( stopWord ) ) {
+    				log.info( "[StopWords] Remove term["+term+"] to ranking" );
+    				iterator.remove( );
+    			}
+    		}
+    	}
+    }
+    /**
+     * Remove terms in the advanced search 
+     * @param query
+     * @return
+     */
+    private String removeCharactersAdvancedSearch( String query ) {
+    	StringBuffer queryResult = new StringBuffer( );
+    	for( String term : allterms ) {
+    		log.info( "TERM => " + term );
+    		if( !term.startsWith( Constants.sizeSearch ) &&
+    			!term.startsWith( Constants.sortCriteria ) )  {
+    			if( queryResult.length( ) > 0 )
+    				queryResult.append( " ".concat( term ) );
+    			else
+    				queryResult.append( term );
+    		}
+    	}
+    	log.info( "query no final do remove => " + queryResult.toString( ) );
+    	return queryResult.toString( );
     }
     
     /**
@@ -159,14 +215,16 @@ public class ImageSearchController {
     private void loadStopWords( ) {
     	Scanner s = null;
     	try{
-    		
-    		s = new Scanner( new File( stopWordsFileLocation ) );
+    		s = new Scanner(new BufferedReader(new FileReader( stopWordsFileLocation )));
     		stopwords = new ArrayList< String >( );
+    		if( !s.hasNext( ) ) 
+    			log.error( "Stopwords file is empty! check file onwer/permissions ["+stopWordsFileLocation+"]" );
     		while( s.hasNext( ) ) {
     			stopwords.add( s.next( ) );
     		}
     	} catch( IOException e ) {
-    		log.error( "Load stopWords file error: " , e );
+    		log.error( ""
+    				+ " " , e );
     	} finally {
     		if( s != null )
     			s.close( );
