@@ -32,8 +32,10 @@ public class Constants {
 	public static final String sizeMedium		= "medium";
 	public static final String sizeLarge		= "large";
 	public static final String sizeAll			= "all";
-	
-	public static final String qReadAll			= "*:*";
+	public static final String solrOP			= ":";
+	public static final String solrWildcards     = "*";
+	public static final String solrOpOR			= " OR ";
+	public static final char   space 			= ' ';
 	public static final String qNotNull			= "* to *";
 	
 	public static enum criteriaRank implements Serializable {

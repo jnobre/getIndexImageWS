@@ -21,6 +21,7 @@ import pt.archive.model.Image;
 import pt.archive.model.ResultImages;
 import pt.archive.service.ImageService;
 import pt.archive.utils.Constants;
+import pt.archive.utils.RequestData;
 
 import java.io.BufferedReader;
 import java.io.File;
@@ -47,10 +48,6 @@ public class ImageSearchController {
 	HttpSolrClientFactory solrClientFactory = null;
 	private String[ ] solrCollections;
 	private List< String > stopwords;
-	private String criteriaRank;
-	private List< String > terms;
-	private List< String > allterms;
-	
 	@Value( "${solr.collections}" )
 	private String solrCollectionsProp;
 	
@@ -85,8 +82,9 @@ public class ImageSearchController {
 	
 	/**
 	 * @param query: full-text element
-	 * @param startData: 
-	 * @param endData
+	 * @param stamp: startdate-enddate 
+	 * @param start: start index search
+	 * @param safeImage: all - all images / yes - only safe image / no - only unsafe image
 	 * @return 
 	 */
     @RequestMapping( value = "/" , method = RequestMethod.GET )
@@ -99,10 +97,14 @@ public class ImageSearchController {
     	log.info( "New request query[" + query + "] stamp["+ stamtp +"] start["+ _startIndex +"] safeImage["+ _safeImage +"]" );
     	if( query == null || query.trim( ).equals( "" ) ) 
     		return null;
-    	getTerms( query );
-    	String resultQuery = prepareTerms( query );
+    	long start = System.currentTimeMillis( );
+    	RequestData requestData = getTerms( query ); //extract terms of query 
+    	String resultQuery = prepareTerms( query , requestData ); 
     	SolrDao< Image > solrDao = new SolrDao< Image > ( solrURL , rowsSolr );
     	List< Image > images = readItems( solrDao , resultQuery );
+    	long elapsedTime = System.currentTimeMillis( ) - start;
+    	log.info( "Search ["+query+"] Results = [" + images.size( ) +"] time = [" + elapsedTime + "] milliseconds.");
+    	printTerms( requestData );
     	return new ResultImages(  createDTO( images ) );
     }
     
@@ -136,16 +138,16 @@ public class ImageSearchController {
      * @param query
      * @return
      */
-    private String prepareTerms( String query ) {
-    	removeStopWords( );
-    	return removeCharactersAdvancedSearch( query );
+    private String prepareTerms( String query , RequestData requestData ) {
+    	removeStopWords( requestData );
+    	return removeCharactersAdvancedSearch( query , requestData );
     }
     
     /**
      * Remove stop words of the terms
      */
-    private void removeStopWords( ) {
-    	for( Iterator< String > iterator = terms.iterator( ) ; iterator.hasNext( ); ) {
+    private void removeStopWords( RequestData requestData ) {
+    	for( Iterator< String > iterator = requestData.getTerms( ).iterator( ) ; iterator.hasNext( ); ) {
     		String term = iterator.next( );
     		for( String stopWord : stopwords ) {
     			if( term.toLowerCase( ).equals( stopWord ) ) {
@@ -155,34 +157,33 @@ public class ImageSearchController {
     		}
     	}
     }
+    
     /**
      * Remove terms in the advanced search 
      * @param query
      * @return
      */
-    private String removeCharactersAdvancedSearch( String query ) {
-    	StringBuffer queryResult = new StringBuffer( );
-    	for( String term : allterms ) {
-    		log.info( "TERM => " + term );
+    private RequestData removeCharactersAdvancedSearch( String query , RequestData requestData) {
+    	
+    	for( Iterator< String > iterator = requestData.getTerms( ).iterator( ) ; iterator.hasNext( ); ) {
+    		String term = iterator.next( );
     		if( !term.startsWith( Constants.sizeSearch ) &&
-    			!term.startsWith( Constants.sortCriteria ) )  {
-    			if( queryResult.length( ) > 0 )
-    				queryResult.append( " ".concat( term ) );
-    			else
-    				queryResult.append( term );
+        			!term.startsWith( Constants.sortCriteria )) {
+    			log.info( "[StopWords] Remove term["+term+"] to ranking" );
+    			iterator.remove( );
     		}
+    		
     	}
-    	log.info( "query no final do remove => " + queryResult.toString( ) );
-    	return queryResult.toString( );
+    	return requestData;
     }
     
     /**
      * get parameter of the query (Advanced search)
      * @param query
      */
-    private void getTerms( String query ) {
-    	terms = new LinkedList< >( );
-    	allterms = new LinkedList< >( );
+    private RequestData getTerms( String query ) {
+    	String criteriaRank = "";
+    	RequestData requestData = new RequestData( );
     	char sort = 45;
     	String sortTerm = "";
     	Matcher m = Pattern.compile( "([^\"]\\S*|\".+?\")\\s*" ).matcher( query );
@@ -193,23 +194,26 @@ public class ImageSearchController {
     			log.info( "  auxSort => " + auxSort + " remove = " + sortTerm );
     			sort = 46;
     			if( auxSort.equals( Constants.criteriaRank.NEW.toString( ) ) )
-    				criteriaRank = "new";
+    				requestData.setCriteriaRank( "new" );
     			else if( auxSort.equals( Constants.criteriaRank.OLD.toString( ) ) )
-    				criteriaRank = "old";
+    				requestData.setCriteriaRank( "old" );
     			else {
-    				criteriaRank = "score";
+    				requestData.setCriteriaRank( "score" );
     				sortTerm = "";
     			}
     		} else if( !m.group( 1 ).startsWith( Constants.typeSearch ) && !m.group( 1 ).startsWith( Constants.sizeSearch ) && !m.group( 1 ).startsWith( Constants.siteSearch ) && !m.group( 1 ).startsWith( Constants.negSearch ) ) {
-    			terms.add( m.group( 1 ).replace( "\"" ,  "" ) );
+    			requestData.getTerms( ).add( m.group( 1 ).replace( "\"" ,  "" ) );
+    			//terms.add( m.group( 1 ).replace( "\"" ,  "" ) );
     		}
-    		allterms.add( m.group( 1 ).replace( "\"" ,  "" ) );
+    		requestData.getAllterms( ).add( m.group( 1 ).replace( "\"" ,  "" ) );
+    		//allterms.add( m.group( 1 ).replace( "\"" ,  "" ) );
     	}
     	
     	if( sort == 45 )
     		criteriaRank = "score";
     	
     	log.info( "criteriaRank["+criteriaRank+"]" );
+    	return requestData;
     }
     
     private void loadStopWords( ) {
@@ -237,6 +241,17 @@ public class ImageSearchController {
     private void loadBlackListFiles( ) {
     	//TODO loadBlackListUrls( );
     	//TODO loadBlackListDomain( );
+    }
+    
+    private void printTerms( RequestData requestData ) {
+    	log.info( "*** Terms ****" );
+    	for( String term : requestData.getTerms( ) )
+    		log.info( "term = " + term );
+    	log.info( "**************" );
+    	log.info( "*** AllTerms ****" );
+    	for( String term : requestData.getAllterms( ) )
+    		log.info( "Allterm = " + term );
+    	log.info( "**************" );
     }
     
     @ExceptionHandler

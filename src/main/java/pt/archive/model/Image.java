@@ -24,7 +24,7 @@ public class Image implements Serializable , IImage {
     @Field( IMGSRC_FIELD )
     private List< String > imgSrc;
     @Field( IMGTITLE_FIELD )
-    private String imgTitle;
+    private List< String > imgTitle;
 	@Field( ORIGINALURL_FIELD )
     private List< String > originalURL;
 	@Field( DIGEST_FIELD )
@@ -124,12 +124,12 @@ public class Image implements Serializable , IImage {
 		return version;
 	}
 
-    public String getImgTitle() {
+    public List< String > getImgTitle() {
 		return imgTitle;
 	}
 
 
-	public void setImgTitle(String imgTitle) {
+	public void setImgTitle(List< String > imgTitle) {
 		this.imgTitle = imgTitle;
 	}
 	
@@ -219,6 +219,8 @@ public class Image implements Serializable , IImage {
 		dto.setSrcBase64( srcBase64 );
 		if( timestamp != null )
 			dto.setTimestamp( timestamp.get( 0 ) );
+		if( imgTitle != null )
+			dto.setImgTitle( imgTitle.get( 0 ) );
 		dto.setVersion( version );
 		return dto;
 	}

@@ -29,7 +29,12 @@ public class SolrDao < T > implements IImage {
 	
 	public QueryResponse findAll( ){
 		SolrQuery query = new SolrQuery( );
-		query.setQuery( Constants.qReadAll ); // q=*:*
+		StringBuffer buildstr = new StringBuffer( ); 
+		buildstr.append( Constants.solrWildcards );
+		buildstr.append( Constants.solrOP );
+		buildstr.append( Constants.solrWildcards );
+		
+		query.setQuery( buildstr.toString( ) ); // q=*:*
 		QueryResponse rsp = null;
 		try {
 			rsp = solrClient.query( query );
@@ -42,11 +47,11 @@ public class SolrDao < T > implements IImage {
 	
 	public QueryResponse findbyImgSrcAndImgAltAndTitle( String queryStr ){
 		SolrQuery param = new SolrQuery( );
-		/*StringBuffer squery = new StringBuffer( );
-		squery.append( IMGSRC_FIELD );
-		squery.append( ":" );
-		squery.append( "*" );*/
+		String pquery = "";
 		
+		pquery = getQueryImgSrcAndImgAltAndTitle( queryStr );
+		log.info( "Query to Solr: " + pquery );
+		param.setQuery( pquery );
 		param.setRows( rows );
 		QueryResponse rsp = null;
 		try {
@@ -57,6 +62,41 @@ public class SolrDao < T > implements IImage {
 		}
 		return rsp;
 	}
+	
+	public String getQueryImgSrcAndImgAltAndTitle( String queryTerms ) {
+		StringBuffer buildstr = new StringBuffer( );
+		String[] terms = queryTerms.split( " " );
+		int cnt = 0;
+		for( String term : terms ) {
+			buildstr.append( IMGSRC_FIELD ); //ImgSrc field
+			buildstr.append( Constants.solrOP );
+			buildstr.append( Constants.solrWildcards );
+			buildstr.append( term );
+			buildstr.append( Constants.solrWildcards );
+			buildstr.append( Constants.solrOpOR );
+			buildstr.append( Constants.space ); // space command ' '
+			
+			buildstr.append( IMGALT_FIELD ); // ImgAlt field
+			buildstr.append( Constants.solrOP );
+			buildstr.append( Constants.solrWildcards );
+			buildstr.append( term );
+			buildstr.append( Constants.solrWildcards );
+			buildstr.append( Constants.solrOpOR );
+			buildstr.append( Constants.space ); // ' '
+			
+			buildstr.append( IMGTITLE_FIELD ); //ImgTitle field
+			buildstr.append( Constants.solrOP );
+			buildstr.append( Constants.solrWildcards );
+			buildstr.append( term );
+			buildstr.append( Constants.solrWildcards );
+			if( ++cnt < terms.length )
+				buildstr.append( Constants.solrOpOR );
+			
+			buildstr.append( Constants.space ); // ' '
+		}
+		return buildstr.toString( );
+	}
+	
 	
 	public QueryResponse findByImgAltNotNull( ){
 		SolrQuery param = new SolrQuery( );
