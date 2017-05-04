@@ -99,7 +99,7 @@ public class ImageSearchController {
     		return null;
     	long start = System.currentTimeMillis( );
     	RequestData requestData = getTerms( query ); //extract terms of query 
-    	String resultQuery = prepareTerms( query , requestData ); 
+    	RequestData resultQuery = prepareTerms( query , requestData ); 
     	SolrDao< Image > solrDao = new SolrDao< Image > ( solrURL , rowsSolr );
     	List< Image > images = readItems( solrDao , resultQuery );
     	long elapsedTime = System.currentTimeMillis( ) - start;
@@ -108,7 +108,7 @@ public class ImageSearchController {
     	return new ResultImages(  createDTO( images ) );
     }
     
-    private List< Image > readItems( SolrDao< Image > solrDao , String query ) {
+    private List< Image > readItems( SolrDao< Image > solrDao , RequestData query ) {
         QueryResponse rsp = solrDao.findbyImgSrcAndImgAltAndTitle( query );
         List< Image > beans = rsp.getBeans( Image.class );
         return beans;
@@ -138,7 +138,7 @@ public class ImageSearchController {
      * @param query
      * @return
      */
-    private String prepareTerms( String query , RequestData requestData ) {
+    private RequestData prepareTerms( String query , RequestData requestData ) {
     	removeStopWords( requestData );
     	return removeCharactersAdvancedSearch( query , requestData );
     }

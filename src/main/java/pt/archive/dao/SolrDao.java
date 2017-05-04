@@ -11,6 +11,7 @@ import org.slf4j.LoggerFactory;
 
 import pt.archive.model.IImage;
 import pt.archive.utils.Constants;
+import pt.archive.utils.RequestData;
 
 public class SolrDao < T > implements IImage {
 	
@@ -45,11 +46,12 @@ public class SolrDao < T > implements IImage {
 		return rsp;
 	}
 	
-	public QueryResponse findbyImgSrcAndImgAltAndTitle( String queryStr ){
+	public QueryResponse findbyImgSrcAndImgAltAndTitle( RequestData request ){
+		
 		SolrQuery param = new SolrQuery( );
 		String pquery = "";
 		
-		pquery = getQueryImgSrcAndImgAltAndTitle( queryStr );
+		pquery = getQueryImgSrcAndImgAltAndTitle( request );
 		log.info( "Query to Solr: " + pquery );
 		param.setQuery( pquery );
 		param.setRows( rows );
@@ -63,11 +65,11 @@ public class SolrDao < T > implements IImage {
 		return rsp;
 	}
 	
-	public String getQueryImgSrcAndImgAltAndTitle( String queryTerms ) {
+	public String getQueryImgSrcAndImgAltAndTitle( RequestData queryTerms ) {
 		StringBuffer buildstr = new StringBuffer( );
-		String[] terms = queryTerms.split( " " );
+		//String[] terms = queryTerms.split( " " );
 		int cnt = 0;
-		for( String term : terms ) {
+		for( String term : queryTerms.getTerms( ) ) {
 			buildstr.append( IMGSRC_FIELD ); //ImgSrc field
 			buildstr.append( Constants.solrOP );
 			buildstr.append( Constants.solrWildcards );
@@ -82,17 +84,17 @@ public class SolrDao < T > implements IImage {
 			buildstr.append( term );
 			buildstr.append( Constants.solrWildcards );
 			buildstr.append( Constants.solrOpOR );
-			buildstr.append( Constants.space ); // ' '
+			buildstr.append( Constants.space ); // space command ' '
 			
 			buildstr.append( IMGTITLE_FIELD ); //ImgTitle field
 			buildstr.append( Constants.solrOP );
 			buildstr.append( Constants.solrWildcards );
 			buildstr.append( term );
 			buildstr.append( Constants.solrWildcards );
-			if( ++cnt < terms.length )
+			if( ++cnt < queryTerms.getTerms( ).size( ) )
 				buildstr.append( Constants.solrOpOR );
 			
-			buildstr.append( Constants.space ); // ' '
+			buildstr.append( Constants.space ); // space command ' '
 		}
 		return buildstr.toString( );
 	}
@@ -152,8 +154,6 @@ public class SolrDao < T > implements IImage {
 		return rsp;
 	}
 	
-	private void configureSolr( ){
-	}
 	
     protected HttpSolrClient getSolrClient( ) {
         return solrClient;
