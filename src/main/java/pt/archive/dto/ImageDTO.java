@@ -1,13 +1,9 @@
 package pt.archive.dto;
 
-import java.util.List;
-
-
-
 public class ImageDTO {
 	private String id;
     private Long timestamp;
-    private byte[] srcBase64;
+    private byte[ ] srcBase64;
     private String imgSrc;
     private String originalURL;
 	private String digest;

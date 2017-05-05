@@ -52,7 +52,7 @@ public class SolrDao < T > implements IImage {
 		String pquery = "";
 		
 		pquery = getQueryImgSrcAndImgAltAndTitle( request );
-		log.info( "Query to Solr: " + pquery );
+		//log.info( "Query to Solr: " + pquery );
 		param.setQuery( pquery );
 		param.setRows( rows );
 		QueryResponse rsp = null;
@@ -62,6 +62,7 @@ public class SolrDao < T > implements IImage {
 			log.error( "[SolrDAO] e" , e );
 			return null;
 		}
+		
 		return rsp;
 	}
 	
@@ -70,6 +71,8 @@ public class SolrDao < T > implements IImage {
 		//String[] terms = queryTerms.split( " " );
 		int cnt = 0;
 		for( String term : queryTerms.getTerms( ) ) {
+			
+			
 			buildstr.append( IMGSRC_FIELD ); //ImgSrc field
 			buildstr.append( Constants.solrOP );
 			buildstr.append( Constants.solrWildcards );
@@ -95,10 +98,19 @@ public class SolrDao < T > implements IImage {
 				buildstr.append( Constants.solrOpOR );
 			
 			buildstr.append( Constants.space ); // space command ' '
+			
 		}
 		return buildstr.toString( );
 	}
 	
+	
+	public void checkAdvancedQuery( RequestData requestData ){
+		
+		if( requestData.isSize( ) ) {
+			//TODO
+		}
+		
+	}
 	
 	public QueryResponse findByImgAltNotNull( ){
 		SolrQuery param = new SolrQuery( );

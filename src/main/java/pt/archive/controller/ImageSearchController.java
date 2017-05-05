@@ -1,9 +1,7 @@
 package pt.archive.controller;
 
-import org.apache.solr.client.solrj.response.QueryResponse;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.data.solr.repository.config.EnableSolrRepositories;
@@ -15,24 +13,24 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.ResponseStatus;
 import org.springframework.web.bind.annotation.RestController;
 
-import pt.archive.dao.SolrDao;
 import pt.archive.dto.ImageDTO;
-import pt.archive.model.Image;
 import pt.archive.model.ResultImages;
-import pt.archive.service.ImageService;
 import pt.archive.utils.Constants;
 import pt.archive.utils.RequestData;
 
 import java.io.BufferedReader;
-import java.io.File;
 import java.io.FileReader;
 import java.io.IOException;
 import java.util.ArrayList;
-import java.util.Collections;
 import java.util.Iterator;
-import java.util.LinkedList;
 import java.util.List;
 import java.util.Scanner;
+import java.util.concurrent.CountDownLatch;
+import java.util.concurrent.ExecutionException;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
+import java.util.concurrent.Future;
+import java.util.concurrent.TimeUnit;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -57,9 +55,14 @@ public class ImageSearchController {
 	@Value( "${solr.num.rows}" )
 	private int rowsSolr;
 	
+	@Value( "${solr.num.cores}" )
+	private int NcoresSolr;
+	
 	@Value( "${stopWords.file}" )
 	private String stopWordsFileLocation;
 	
+	@Value( "${TimeoutThreads}" )
+	private long timeout;
 	//private final ImageService imageService;
 /*	@Autowired // no necessary in spring 4.3+
 	public ImageSearchController(ImageService imageService) {
@@ -94,21 +97,74 @@ public class ImageSearchController {
     									 @RequestParam(value="safeImage", defaultValue="all") String _safeImage ) {
 	    //List< Image > images = imageService.searchTerm( "socrates" );
 	    //List< Image > images = imageService.findAll( );
+    	ExecutorService pool = Executors.newFixedThreadPool( NcoresSolr );
+    	boolean isAllDone = false;
+    	CountDownLatch doneSignal;
+    	List< ImageDTO > images = new ArrayList< >( );
     	log.info( "New request query[" + query + "] stamp["+ stamtp +"] start["+ _startIndex +"] safeImage["+ _safeImage +"]" );
+    	
     	if( query == null || query.trim( ).equals( "" ) ) 
     		return null;
+    	
     	long start = System.currentTimeMillis( );
+    	
     	RequestData requestData = getTerms( query ); //extract terms of query 
     	RequestData resultQuery = prepareTerms( query , requestData ); 
-    	SolrDao< Image > solrDao = new SolrDao< Image > ( solrURL , rowsSolr );
-    	List< Image > images = readItems( solrDao , resultQuery );
-    	long elapsedTime = System.currentTimeMillis( ) - start;
+    	
+    	/*SolrDao< Image > solrDao = new SolrDao< Image > ( solrURL , rowsSolr );
+    	List< Image > images = readItems( solrDao , resultQuery );*/
+    	doneSignal = new CountDownLatch( NcoresSolr );
+    	List< Future< List< ImageDTO > > > submittedJobs = new ArrayList< >( );
+    	for( int i = 0 ; i < NcoresSolr ; i++ ) {
+    		Future< List< ImageDTO > > job = null;
+    		//log.info( "Submit new job collection["+solrCollections[i]+"]" );
+    		job = pool.submit( new ImageSearchWorker(resultQuery, buildHostSolr( solrURL , solrCollections[ i ] ) , rowsSolr , doneSignal ) );
+    		submittedJobs.add( job );
+    	}
+    	
+    	try {
+ 			isAllDone = doneSignal.await( timeout , TimeUnit.SECONDS );
+ 		    if ( !isAllDone ) {
+ 		    	log.info( "Clean threads!!!!" );
+ 		    	cleanUpThreads( submittedJobs );
+ 		    }
+            	
+        } catch ( InterruptedException e1 ) {
+        	cleanUpThreads( submittedJobs ); // take care, or cleanup
+        }
+    	
+    	
+    	//get images result to search
+ 		for( Future< List< ImageDTO > >  job : submittedJobs ) {
+ 			try {
+ 				List< ImageDTO > result = job.get( ); // wait for a processor to complete
+                if ( !isAllDone && !job.isDone( ) ) {  // before doing a get you may check if it is done
+                    job.cancel( true ); // cancel job and continue with others
+                    continue;
+                }
+ 			
+	 			if( result != null && !result.isEmpty( ) ) {
+	 				log.debug( "Resultados do future = " + result.size( ) );
+	 				images.addAll( result );
+	 			}
+            } catch ( ExecutionException cause ) {
+            	log.error( "[ImageSearchResultsController][getImageResults]", cause ); // exceptions occurred during execution, in any
+            } catch ( InterruptedException e ) {
+            	log.error( "[ImageSearchResultsController][getImageResults]", e ); // take care
+            }
+ 		}
+ 
+ 		long elapsedTime = System.currentTimeMillis( ) - start;
     	log.info( "Search ["+query+"] Results = [" + images.size( ) +"] time = [" + elapsedTime + "] milliseconds.");
     	printTerms( requestData );
-    	return new ResultImages(  createDTO( images ) );
+    	return new ResultImages(  images );
     }
     
-    private List< Image > readItems( SolrDao< Image > solrDao , RequestData query ) {
+    private String buildHostSolr( String solrURL , String collection ) {
+    	return solrURL.concat( Constants.urlBarOP ).concat( collection );
+    }
+    
+   /* private List< Image > readItems( SolrDao< Image > solrDao , RequestData query ) {
         QueryResponse rsp = solrDao.findbyImgSrcAndImgAltAndTitle( query );
         List< Image > beans = rsp.getBeans( Image.class );
         return beans;
@@ -119,8 +175,11 @@ public class ImageSearchController {
     	for( Image image : input )  //TODO with Java 8 this is not necessary
     		result.add( image._toConvertStudentDTO( ) );
     	return result;
-    }
+    }*/
     
+    /**
+     * Print application properties
+     */
     private void printProperties( ){
     	log.info( "********* Properties *********" );
     	log.info( "Collections: " );
@@ -167,8 +226,8 @@ public class ImageSearchController {
     	
     	for( Iterator< String > iterator = requestData.getTerms( ).iterator( ) ; iterator.hasNext( ); ) {
     		String term = iterator.next( );
-    		if( !term.startsWith( Constants.sizeSearch ) &&
-        			!term.startsWith( Constants.sortCriteria )) {
+    		if( term.startsWith( Constants.sizeSearch ) &&
+        			term.startsWith( Constants.sortCriteria )) {
     			log.info( "[StopWords] Remove term["+term+"] to ranking" );
     			iterator.remove( );
     		}
@@ -185,13 +244,11 @@ public class ImageSearchController {
     	String criteriaRank = "";
     	RequestData requestData = new RequestData( );
     	char sort = 45;
-    	String sortTerm = "";
     	Matcher m = Pattern.compile( "([^\"]\\S*|\".+?\")\\s*" ).matcher( query );
     	while( m.find( ) ) {
     		if( m.group( 1 ).startsWith( Constants.sortCriteria ) ) {
     			String auxSort = m.group( 1 ).substring( m.group( 1 ).indexOf( Constants.sortCriteria ) + Constants.sortCriteria.length( ) );
-    			sortTerm = m.group( 1 );
-    			log.info( "  auxSort => " + auxSort + " remove = " + sortTerm );
+    			log.info( "  auxSort => " + auxSort );
     			sort = 46;
     			if( auxSort.equals( Constants.criteriaRank.NEW.toString( ) ) )
     				requestData.setCriteriaRank( "new" );
@@ -199,14 +256,22 @@ public class ImageSearchController {
     				requestData.setCriteriaRank( "old" );
     			else {
     				requestData.setCriteriaRank( "score" );
-    				sortTerm = "";
     			}
     		} else if( !m.group( 1 ).startsWith( Constants.typeSearch ) && !m.group( 1 ).startsWith( Constants.sizeSearch ) && !m.group( 1 ).startsWith( Constants.siteSearch ) && !m.group( 1 ).startsWith( Constants.negSearch ) ) {
     			requestData.getTerms( ).add( m.group( 1 ).replace( "\"" ,  "" ) );
-    			//terms.add( m.group( 1 ).replace( "\"" ,  "" ) );
     		}
     		requestData.getAllterms( ).add( m.group( 1 ).replace( "\"" ,  "" ) );
-    		//allterms.add( m.group( 1 ).replace( "\"" ,  "" ) );
+    		if( m.group( 1 ).startsWith( Constants.typeSearch ) ){
+    			requestData.setType( true );
+    		} else if( m.group( 1 ).startsWith( Constants.siteSearch ) ) {
+    			requestData.setSite( true );
+    		} else if( m.group( 1 ).startsWith( Constants.sizeSearch ) ) {
+    			requestData.setSize( true );
+    		} else if( m.group( 1 ).startsWith( Constants.sortCriteria ) ) {
+    			requestData.setSort( true );
+    		} else if( m.group( 1 ).startsWith( Constants.negSearch ) ) {
+    			requestData.setNeg( true );
+    		}
     	}
     	
     	if( sort == 45 )
@@ -241,6 +306,17 @@ public class ImageSearchController {
     private void loadBlackListFiles( ) {
     	//TODO loadBlackListUrls( );
     	//TODO loadBlackListDomain( );
+    }
+    
+    /**
+     * Clean memory threads
+     * @param submittedJobs
+     */
+    private void cleanUpThreads( List< Future< List< ImageDTO > > > submittedJobs ) {
+    	for ( Future< List< ImageDTO > > job : submittedJobs ) {
+    		if( job != null )
+    			job.cancel( true );
+    	}
     }
     
     private void printTerms( RequestData requestData ) {
